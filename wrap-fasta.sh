@@ -5,9 +5,9 @@
 # will join all lines of amino acids into one line. will not join lines starting with >
 
 input_fasta="$1"
-output_fasta="$2"
+# output_fasta="$2"
 
-awk '/^>/ {printf("\n%s\n",$0);next; } { printf("%s",$0);}  END {printf("\n");}' $input_fasta > $output_fasta
+awk '/^>/ { if(NR==1) {print $0;} else {printf "\n%s\n",$0;} next; } { printf "%s",$0 }' $input_fasta
 
 # Check if the input file is provided
 # if [ -z "$1" ]; then
