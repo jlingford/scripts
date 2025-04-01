@@ -24,7 +24,7 @@ FILE_PREFIX=$(printf "%02d" ${NEXT_NUM})
 FILENAME="${FILE_PREFIX}_${TITLE}_$(date -u +%Y%m%d).md"
 
 # create new file
-touch ${FILENAME}
+touch "${FILENAME}"
 
 echo "---
 title: '${TITLE}'
@@ -33,8 +33,10 @@ date: '$(date -u +%Y-%m-%d)'
 toc: true
 format:
     html:
-        code-fold: true
         code-tools: true
+        code-fold: true
+        code-summary: 'Show code'
+        code-copy: true
         html-math-method: katex
         embed-resources: true
         theme:
@@ -42,6 +44,6 @@ format:
             dark: darkly
 ---
 
-# ${TITLE}
+## ${TITLE}
 
 " >>${FILENAME}
