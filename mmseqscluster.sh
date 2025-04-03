@@ -2,10 +2,11 @@
 
 # need to have mmseqs conda environment activated!
 # usage: ./script.sh
+# RUN FROM CORRECT BASE DIRECTORY TO NOT CLUTTER UP DISK
 
 # variables
 COV=0.80
-SEQID=0.20
+SEQID=0.90
 COVMODE=0
 CLUSTMODE=0
 suffix1=${COV##*.}
@@ -18,6 +19,9 @@ suffix4=${CLUSTMODE}
 protein_names=("fefe" "feon" "nife")
 for name in "${protein_names[@]}"; do
 
+    # set long database name
+    DBNAME=${name}-cov${suffix1}-id${suffix2}-covm${suffix3}-clustm${suffix4}
+
     # make directories if they don't exist yet
     directories=("seqDB" "clustDB" "alignDB" "fastaclustDB" "repclustDB" "outfiles")
     for dir in "${directories[@]}"; do
@@ -28,11 +32,15 @@ for name in "${protein_names[@]}"; do
     if [[ ! -d tmp ]]; then
         mkdir -p tmp
     fi
+    if [[ ! -d outfiles/${name}/${DBNAME} ]]; then
+        mkdir -p outfiles/${name}/${DBNAME}
+    fi
 
-    # set long database name
-    DBNAME=${name}-cov${suffix1}-id${suffix2}-covm${suffix3}-clustm${suffix4}
-
-    # step 1 (done): create sequenceDB out of fastas
+    # # step 1 (done): create sequenceDB out of fastas
+    # mmseqs createdb \
+    #     ./YOUR_FASTA_FILE.faa \
+    #     ./seqDB/${name}-DB \
+    #     --dbtype 1
 
     # step 2: create cluster database
     mmseqs cluster \
@@ -44,7 +52,7 @@ for name in "${protein_names[@]}"; do
         --min-seq-id ${SEQID} \
         --cov-mode ${COVMODE} \
         --cluster-mode ${CLUSTMODE} \
-        --max-seqs 20 \
+        --max-seqs 300 \
         -s 7.5 \
         -e 0.0001 \
         -a 1
@@ -53,9 +61,10 @@ for name in "${protein_names[@]}"; do
     mmseqs createtsv \
         ./seqDB/${name}-DB \
         ./clustDB/${name}/${DBNAME} \
-        ./outfiles/${name}/${DBNAME}-clust_info.tsv
+        ./outfiles/${name}/${DBNAME}/${DBNAME}-clust_info.tsv
 
-    # step 4: convert clusterDB to alignmentDB
+    # optional step 4: create alignment (2 steps)
+    # optional step 4.1: convert clusterDB to alignmentDB
     mmseqs align \
         ./seqDB/${name}-DB \
         ./seqDB/${name}-DB \
@@ -63,43 +72,52 @@ for name in "${protein_names[@]}"; do
         ./alignDB/${name}/${DBNAME} \
         -a 1
 
-    # step 5: convert alignmentDB to alignment output file
+    # step 4.2: convert alignmentDB to alignment output file
     mmseqs convertalis \
         ./seqDB/${name}-DB \
         ./seqDB/${name}-DB \
         ./alignDB/${name}/${DBNAME} \
-        ./outfiles/${name}/${DBNAME}-all_clusters.tsv \
+        ./outfiles/${name}/${DBNAME}/${DBNAME}-all_clusters.tsv \
         --format-mode 4 \
         --format-output query,target,evalue,pident,tseq
 
     # creating fasta files...
 
-    # optional step 6: convert cluster to fasta files (2 steps)
-    # optional step 6.1: convert clusterDB to fasta-clusterDB
+    # step 5: convert cluster to fasta files (2 steps)
+    # step 5.1: convert clusterDB to fasta-clusterDB
     mmseqs createseqfiledb \
         ./seqDB/${name}-DB \
         ./clustDB/${name}/${DBNAME} \
         ./fastaclustDB/${name}/${DBNAME}
 
-    # optional step 6.2: covert fasta-clusterDB to fasta file
+    # step 5.2: covert fasta-clusterDB to fasta file
     mmseqs result2flat \
         ./seqDB/${name}-DB \
         ./seqDB/${name}-DB \
         ./fastaclustDB/${name}/${DBNAME} \
-        ./outfiles/${name}/${DBNAME}.faa
+        ./outfiles/${name}/${DBNAME}/${DBNAME}.faa
 
-    # optional step 7: retrieve representative sequences from clusters (2 steps)
-    # optional step 7.1: convert clusterDB to cluster_representativesDB
+    # step 6: retrieve representative sequences from clusters (2 steps)
+    # step 6.1: convert clusterDB to cluster_representativesDB
     mmseqs createsubdb \
         ./clustDB/${name}/${DBNAME} \
         ./seqDB/${name}-DB \
         ./repclustDB/${name}/${DBNAME}-clust_representatives
 
-    # optional step 7.2: convert cluster_representativesDB to fasta file
+    # step 6.2: convert cluster_representativesDB to fasta file
     mmseqs convert2fasta \
         ./repclustDB/${name}/${DBNAME}-clust_representatives \
-        ./outfiles/${name}/${DBNAME}-clust_representatives.faa
+        ./outfiles/${name}/${DBNAME}/${DBNAME}-clust_representatives.faa
+
+    # rename -cluster_representatives.faa to contain number of fasta files in name
+    COUNT=$(grep -c "^>" outfiles/${name}/${DBNAME}/${DBNAME}-clust_representatives.faa)
+    perl-rename "s/.faa/-${COUNT}_seqs.faa/" outfiles/${name}/${DBNAME}/${DBNAME}-clust_representatives.faa
+
+    # run split fasta python script
+    mmseqsfasta2splitfasta.py outfiles/${name}/${DBNAME}/${DBNAME}.faa
 
     echo "done!"
 
 done
+
+rm -rf tmp/*
