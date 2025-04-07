@@ -14,7 +14,7 @@ suffix2=${SEQID##*.}
 suffix3=${COVMODE}
 suffix4=${CLUSTMODE}
 
-# mamba activate mmseqs2
+# mamba activate mmseqs2 environment
 
 protein_names=("fefe" "feon" "nife")
 for name in "${protein_names[@]}"; do
