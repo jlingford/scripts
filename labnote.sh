@@ -21,7 +21,7 @@ NEXT_NUM=$((HIGHEST_NUM + 1))
 FILE_PREFIX=$(printf "%02d" ${NEXT_NUM})
 
 # set filename
-FILENAME="${FILE_PREFIX}_${TITLE}_$(date -u +%Y%m%d).md"
+FILENAME="${FILE_PREFIX}_${TITLE}_$(date -u +%Y%m%d).qmd"
 
 # create new file
 touch "${FILENAME}"
@@ -42,6 +42,7 @@ format:
         theme:
             light: default
             dark: darkly
+jupyter: python3
 ---
 
 ## ${TITLE}
