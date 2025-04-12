@@ -42,9 +42,9 @@ format:
         theme:
             light: default
             dark: darkly
-jupyter: python3
 ---
 
 ## ${TITLE}
+
 
 " >>${FILENAME}
