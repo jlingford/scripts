@@ -7,7 +7,7 @@
 TITLE=$1
 
 # find file with highest num prefix in current dir, return just the num
-HIGHEST_NUM=$(fd -d1 "^[0-9]+" | tail -n 1 | sed -E 's/^([0-9]+)_.*/\1/')
+HIGHEST_NUM=$(fd -d1 "^[0-9]+" | tail -n 1 | sed -E 's/^([0-9]+)[_-].*/\1/')
 
 # if no previous file, set number prefix to 00
 if [[ -z $HIGHEST_NUM ]]; then
@@ -21,7 +21,7 @@ NEXT_NUM=$((HIGHEST_NUM + 1))
 FILE_PREFIX=$(printf "%02d" ${NEXT_NUM})
 
 # set filename
-FILENAME="${FILE_PREFIX}_${TITLE}_$(date -u +%Y%m%d).qmd"
+FILENAME="${FILE_PREFIX}-${TITLE}-$(date -u +%Y%m%d).qmd"
 
 # create new file
 touch "${FILENAME}"
