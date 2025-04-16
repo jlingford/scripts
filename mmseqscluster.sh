@@ -16,7 +16,8 @@ suffix4=${CLUSTMODE}
 
 # mamba activate mmseqs2 conda/mamba environment
 
-protein_names=("fefe" "feon" "nife")
+# protein_names=("fefe" "feon" "nife")
+protein_names=("fefe-cleaned1" "nife-cleaned1")
 for name in "${protein_names[@]}"; do
 
     # set long database name
@@ -54,7 +55,7 @@ for name in "${protein_names[@]}"; do
         --cluster-mode ${CLUSTMODE} \
         --max-seqs 300 \
         -s 7.5 \
-        -e 0.0001 \
+        -e 0.001 \
         -a 1
 
     # step 3: output tsv of clusters
