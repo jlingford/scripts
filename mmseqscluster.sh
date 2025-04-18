@@ -6,7 +6,7 @@
 
 # variables
 COV=0.80
-SEQID=0.90
+SEQID=0.20
 COVMODE=0
 CLUSTMODE=0
 suffix1=${COV##*.}
@@ -14,10 +14,17 @@ suffix2=${SEQID##*.}
 suffix3=${COVMODE}
 suffix4=${CLUSTMODE}
 
+# REMINDER
 # mamba activate mmseqs2 conda/mamba environment
 
-# protein_names=("fefe" "feon" "nife")
-protein_names=("fefe-cleaned1" "nife-cleaned1")
+# # step 1 (done): create sequenceDB out of fastas
+# mmseqs createdb \
+#     ./YOUR_FASTA_FILE.faa \
+#     ./seqDB/${name}-DB \
+#     --dbtype 1
+
+protein_names=("fefe" "feon" "nife")
+# protein_names=("fefe-cleaned1" "nife-cleaned1")
 for name in "${protein_names[@]}"; do
 
     # set long database name
@@ -36,12 +43,6 @@ for name in "${protein_names[@]}"; do
     if [[ ! -d outfiles/${name}/${DBNAME} ]]; then
         mkdir -p outfiles/${name}/${DBNAME}
     fi
-
-    # # step 1 (done): create sequenceDB out of fastas
-    # mmseqs createdb \
-    #     ./YOUR_FASTA_FILE.faa \
-    #     ./seqDB/${name}-DB \
-    #     --dbtype 1
 
     # step 2: create cluster database
     mmseqs cluster \
