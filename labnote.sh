@@ -21,7 +21,7 @@ NEXT_NUM=$((HIGHEST_NUM + 1))
 FILE_PREFIX=$(printf "%02d" ${NEXT_NUM})
 
 # set filename
-FILENAME="${FILE_PREFIX}-${TITLE}-$(date -u +%Y%m%d).qmd"
+FILENAME="${FILE_PREFIX}-${TITLE}-$(date -u +%Y%m%d).md"
 
 # create new file
 touch "${FILENAME}"
