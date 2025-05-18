@@ -17,14 +17,15 @@
 # REMINDER
 # mamba activate mmseqs2 conda/mamba environment
 
-# # step 1 (done): create sequenceDB out of fastas
-# mmseqs createdb \
-#     ./YOUR_FASTA_FILE.faa \
-#     ./seqDB/${name}-DB \
-#     --dbtype 1
+# step 1 (done): create sequenceDB out of fastas
+name="nife_gtdb226"
+mmseqs createdb \
+    ./fastainputs/NiFe-GTDBr226-diamond.faa \
+    ./seqDB/${name}-DB \
+    --dbtype 1
 
 seq_ids=("0.00" "0.10" "0.20" "0.30" "0.40" "0.50" "0.60" "0.70" "0.80" "0.90")
-protein_names=("nife")
+protein_names=("nife_gtdb226")
 # protein_names=("fefe" "feon" "nife")
 
 for name in "${protein_names[@]}"; do
