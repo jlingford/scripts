@@ -2,8 +2,8 @@
 
 # Check if the input file is provided
 if [ -z "$1" ]; then
-  echo "Usage: $0 input.fasta"
-  exit 1
+    echo "Usage: $0 input.fasta"
+    exit 1
 fi
 
 input_file="$1"
@@ -18,15 +18,19 @@ awk -v out="$output_dir" '
   }
   /^>/ {
     # Extract the sequence name
-    seqname = substr($0, 2, 22)
+    # seqname = substr($0, 2, 22)
+    split($1, arr, /_/);
+    seqname = arr[2]
+
     # Sanitize the sequence name for the file
-    seqname = gensub(/[^a-zA-Z0-9]/, "_", "g", seqname)
+    # seqname = gensub(/[^a-zA-Z0-9]/, "_", "g", seqname)
+
     # Close the previous file if the sequence name changes
     if (seqname != prev_seqname && outfile) {
       close(outfile)
     }
     # Open (or append to) a file named after the current sequence
-    outfile = seqname ".fasta"
+    outfile = seqname ".faa"
     prev_seqname = seqname
   }
   {
@@ -35,6 +39,5 @@ awk -v out="$output_dir" '
   }
 ' "$input_file"
 
-mv *.fasta $output_dir
+mv *.faa $output_dir
 mv $output_dir/$input_file .
-
