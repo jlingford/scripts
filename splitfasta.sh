@@ -18,8 +18,8 @@ awk -v outdir="${output_dir}" '
     prev_seqname = ""
   }
   /^>/{
-    gsub(/^>/, "", $1)
-    seqname = $1
+    split($1, arr, ">")
+    seqname = arr[2]
     if (seqname != prev_seqname && outfile) {
       close(outfile)
     }
