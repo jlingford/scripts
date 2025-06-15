@@ -41,6 +41,7 @@ elif [[ $type == *feon* ]]; then
     )
 else
     echo "input error"
+    exit 1
 fi
 
 cut -d $'\t' -f1,2,8,9,10,12,16 "$seed_file" >seed2.tsv
