@@ -9,35 +9,27 @@ fi
 input_file="$1"
 output_dir="$2"
 
-mkdir -p "$output_dir"
+if [[ ! -d $output_dir ]]; then
+    mkdir -p "${output_dir}"
+fi
 
-awk -v out="$output_dir" '
+awk -v outdir="${output_dir}" '
   BEGIN {
-    # Initialize variables
     prev_seqname = ""
   }
-  /^>/ {
-    # Extract the sequence name
-    # seqname = substr($0, 2, 22)
-    split($1, arr, /_/);
-    seqname = arr[2]
-
-    # Sanitize the sequence name for the file
-    # seqname = gensub(/[^a-zA-Z0-9]/, "_", "g", seqname)
-
-    # Close the previous file if the sequence name changes
+  /^>/{
+    gsub(/^>/, "", $1)
+    seqname = $1
     if (seqname != prev_seqname && outfile) {
       close(outfile)
     }
-    # Open (or append to) a file named after the current sequence
-    outfile = seqname ".faa"
+    outfile = outdir "/" seqname ".faa"
     prev_seqname = seqname
   }
   {
-    # Write the line to the appropriate file
     print $0 >> outfile
   }
-' "$input_file"
+' "${input_file}"
 
-mv *.faa $output_dir
-mv $output_dir/$input_file .
+# mv *.faa ${output_dir}
+# mv ${output_dir}/${input_file} .
