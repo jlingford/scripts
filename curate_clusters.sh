@@ -7,11 +7,18 @@
 input=$1
 outdir=$2
 
+if [[ $# -eq 0 ]]; then
+    >&2 echo "Error: no arguments provided"
+    >&2 echo "USAGE: curate_clusters.sh [subset_list_input] [path/to/outdir]"
+    >&2 echo "Tip: run at base of directory to avoid accidentally pulling off-target files"
+    exit 1
+fi
+
 if [[ ! -d $outdir ]]; then
     mkdir -p "$outdir"
 fi
 
-while read -r clustrep; do
-    id=${clustrep/./_}
-    cp $(fd ${id}) ${outdir}
+while read -r rep; do
+    id=${rep/./_/}
+    cp $(fd "${id}") "${outdir}"
 done <"${input}"
