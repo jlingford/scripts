@@ -6,9 +6,9 @@
 #SBATCH --ntasks-per-node=1
 #SBATCH --cpus-per-task=48
 #SBATCH --account=rp24
-#SBATCH --partition=genomics
-#SBATCH --qos=genomics
-#SBATCH --time=4:00:00
+#SBATCH --partition=genomicsb
+#SBATCH --qos=genomicsbq
+#SBATCH --time=24:00:00
 #SBATCH --mail-user=james.lingford@monash.edu
 #SBATCH --mail-type=BEGIN,END,FAIL,TIME_OUT
 #SBATCH --output=log-%j.out
@@ -38,9 +38,11 @@ suffix1=${COV##*.}
 suffix3=${COVMODE}
 suffix4=${CLUSTMODE}
 
+# WARN: chainge each job
+INPUTDIR='./fastainput/globdb_newhits_v3'
 # step 0: place fasta files for clustering in ./fastainput directory
 # step 1 (done): create sequenceDB out of fastas
-for file in ./fastainput/globdb_new_hits/*.faa; do
+for file in ${INPUTDIR}/*.faa; do
     if [[ ! -d seqDB ]]; then
         mkdir -p seqDB
     fi
@@ -54,14 +56,15 @@ done
 
 # set protein name and seq ids to loop over
 protein_names=(
-    $(for file in ./fastainput/globdb_new_hits/*.faa; do
+    $(for file in ${INPUTDIR}/*.faa; do
         name=${file##*/}
         name=${name%.*}
         echo $name
     done)
 )
 # seq_ids=("0.00" "0.10" "0.20" "0.30" "0.40" "0.50" "0.60" "0.70" "0.80" "0.90")
-seq_ids=("0.30" "0.50" "0.70")
+seq_ids=("0.00" "0.10" "0.20" "0.30" "0.40" "0.50" "0.60" "0.70" "0.80")
+# seq_ids=("0.30" "0.50" "0.70")
 
 # start clustering
 for name in "${protein_names[@]}"; do
@@ -177,7 +180,7 @@ done
 # optional: output cluster reps counts to tsv file (requires "fd" to be installed)
 fd seqs.faa | awk -F"/" '{print $NF}' | sort | awk -F"-" -vOFS="\t" '{print $1, $(NF-6), $(NF-5), $(NF-3), $(NF-2), $(NF-4),  $NF}' | sed 's/id//' | sed 's/_seqs.faa//' | sed '1i #name\tdetails\tcoverage\tcov-mode\tcluster-mode\tseqid\tno_rep_seqs' >./outfiles/cluster_counts.tsv
 # optional: compress/archive results files
-tar -czvf ./outfiles/clustering-cov${suffix1}-covm${suffix3}-clustm${suffix4}.tar.gz --exclude="*.gz" --exclude="old*" ./outfiles/*
+# tar -czvf ./outfiles/clustering-cov${suffix1}-covm${suffix3}-clustm${suffix4}.tar.gz --exclude="*.gz" --exclude="old*" ./outfiles/*
 # remove unarchived files:
 # for file in ./fastainput/*.faa; do
 #     name=${file##*/}
