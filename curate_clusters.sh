@@ -24,7 +24,7 @@ fi
 while read -r rep; do
     # id=${rep/./_/}
     # cp $(fd "${id}") "${outdir}"
-    fd "${rep}" --exec cp {} ${outdir}/${name}
+    fd "${rep}" --exec mv {} ${outdir}/${name}
 done <"${input}"
 
 outfile=${outdir}/${name}/${name}-combined_filtered_clusters.faa
