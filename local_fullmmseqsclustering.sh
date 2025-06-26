@@ -6,33 +6,41 @@
 # NOTE: cov-mode 2 = query coverage mode (i.e. target must cover x% of query seq.). reccomended for mmseqs search, but not really applicable to clustering.
 # NOTE: cov-mode 3 = target must be x% length of query. could be useful for downstream MSA generation.
 
+if [[ $# -eq 0 ]]; then
+    >&2 echo "Error: no arguments provided"
+    >&2 echo "USAGE: $(basename $0) [INPUTDIR]"
+    exit 1
+fi
+
 # set THREADS usage
 T=12
 
 # step 0: place fasta files for clustering in ./fastainput directory
 # step 1 (done): create sequenceDB out of fastas
-for file in ./fastainput/*.faa; do
+INPUTDIR=$1
+for file in ${INPUTDIR}/*.faa; do
     if [[ ! -d seqDB ]]; then
         mkdir -p seqDB
     fi
     name=${file##*/}
     name=${name%.*}
     mmseqs createdb \
-        ./fastainput/${name}.faa \
+        "${file}" \
         ./seqDB/${name}-DB \
         --dbtype 1
 done
 
 # set protein name and seq ids and query/target coverages to loop over
 protein_names=(
-    $(for file in ./fastainput/*.faa; do
+    $(for file in ${INPUTDIR}/*.faa; do
         name=${file##*/}
         name=${name%.*}
         echo $name
     done)
 )
 # seq_ids=("0.00" "0.10" "0.20" "0.30" "0.40" "0.50" "0.60" "0.70" "0.80" "0.90")
-seq_ids=("0.20" "0.30" "0.50" "0.70")
+# seq_ids=("0.20" "0.30" "0.50" "0.70" "0.80" "0.90")
+seq_ids=("0.80" "0.90")
 # coverages=("0.50" "0.60" "0.70" "0.80" "0.90")
 coverages=("0.80")
 
