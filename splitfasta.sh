@@ -1,7 +1,8 @@
 #!/bin/bash
 
 # Check if the input file is provided
-if [ -z "$1" ]; then
+if [ -z "$1" ] || [ -z "$2" ]; then
+    echo "Error: must provide two arguments"
     echo "Usage: $(basename $0) [INPUT.fasta] [OUTDIR_NAME]"
     exit 1
 fi
