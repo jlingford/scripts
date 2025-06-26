@@ -2,7 +2,7 @@
 
 # Check if the input file is provided
 if [ -z "$1" ]; then
-    echo "Usage: $0 input.fasta"
+    echo "Usage: $(basename $0) [INPUT.fasta] [OUTDIR_NAME]"
     exit 1
 fi
 
@@ -20,6 +20,8 @@ awk -v outdir="${output_dir}" '
   /^>/{
     split($1, arr, ">")
     seqname = arr[2]
+    gsub(/[\.\|]/, "_", seqname)
+    gsub(/[#%^\*\\+!={}?]/, "", seqname)
     if (seqname != prev_seqname && outfile) {
       close(outfile)
     }
