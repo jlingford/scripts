@@ -14,23 +14,24 @@ if [[ $# -eq 0 ]]; then
     exit 1
 fi
 
-if [[ ! -d $outdir ]]; then
-    mkdir -p "${outdir}"/filtered_clusters
-fi
-
 name=${input##*/}
 name=${name%%.*}
 
+if [[ ! -d ${outdir}/${name}/${name}-filtered_clusters ]]; then
+    mkdir -p ${outdir}/${name}/${name}-filtered_clusters
+fi
+
 while read -r rep; do
-    id=${rep/./_/}
-    cp $(fd "${id}") "${outdir}"
+    # id=${rep/./_/}
+    # cp $(fd "${id}") "${outdir}"
+    fd "${rep}" --exec mv {} ${outdir}/${name}
 done <"${input}"
 
-outfile=${outdir}/${name}-combined_filtered_clusters.faa
+outfile=${outdir}/${name}/${name}-combined_filtered_clusters.faa
 
-for file in ${outdir}/*.faa; do
+for file in ${outdir}/${name}/*.faa; do
     cat ${file} >>${outfile}
-    mv ${file} ${outdir}/filtered_clusters
+    mv ${file} ${outdir}/${name}/${name}-filtered_clusters
 done
 
 echo -e "$(grep -c '^>' ${outfile}):\t${outfile}"
