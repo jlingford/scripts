@@ -172,7 +172,7 @@ for INPUT in "${INPUTLOOP[@]}"; do
 
     # make subset list of unique afdb hits to grep afdbhitsDB with
     # NOTE: make sure to select 2nd field containing AFDB ID's
-    cut -f2 ./outfiles/$jobname/${name}-AFDB_UNIQUE_HITS.tsv >./subset_dir/${jobname}/${name}-AFDB_subset_list.txt
+    cut -f2 ./outfiles/${jobname}/${name}-AFDB_UNIQUE_HITS.tsv >./subset_dir/${jobname}/${name}-AFDB_subset_list.txt
     # NOTE: grep the AFDB database, not the alignmentDB "afdbhitsDB" (which does not contain any Ca info)
     grep -f ./subset_dir/${jobname}/${name}-AFDB_subset_list.txt ${DBDIR}/${DB2}.lookup >./subset_dir/${jobname}/${name}-AFDB_subsetDB.tsv
 
