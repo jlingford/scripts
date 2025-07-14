@@ -6,12 +6,11 @@ import matplotlib.pyplot as plt
 from matplotlib.ticker import StrMethodFormatter
 from Bio import SeqIO
 import seaborn as sns
-import sys
 
-# get positional argument input
-input_file = sys.argv[1]
-p = Path(sys.argv[1])
-title = p.stem
+# parse cli arg
+parser = argparse.ArgumentParser()
+parser.add_argument("input", help="Input fasta file", type=Path)
+args = parser.parse_args()
 
 
 # plot histograms
@@ -35,4 +34,4 @@ def plot_hist(file, title):
     plt.show()
 
 
-plot_hist(input_file, title)
+plot_hist(args.input, args.input.stem)
