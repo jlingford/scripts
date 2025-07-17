@@ -8,8 +8,8 @@ if [[ $# -eq 0 ]]; then
     exit 1
 fi
 
-touch ${filename}.sh
-chmod u+x ${filename}.sh
+touch ${filename}.py
+chmod u+x ${filename}.py
 
 template() {
     cat <<'EOF'
@@ -32,7 +32,9 @@ from pathlib import Path
 
 
 def parse_arguments():
-    # Initialize argparse
+    """
+    Parse arguments to script
+    """
     parser = argparse.ArgumentParser(
         description="Description goes here",
         epilog="Example %(prog)s -i INPUT [-o OUTPUT]"
@@ -88,4 +90,4 @@ if __name__ == "__main__":
 EOF
 }
 
-template >"${filename}.sh"
+template >"${filename}.py"

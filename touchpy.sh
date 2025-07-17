@@ -8,8 +8,8 @@ if [[ $# -eq 0 ]]; then
     exit 1
 fi
 
-touch ${filename}.sh
-chmod u+x ${filename}.sh
+touch ${filename}.py
+chmod u+x ${filename}.py
 
 template() {
     cat <<'EOF'
@@ -35,4 +35,4 @@ from pathlib import Path
 EOF
 }
 
-template >"${filename}.sh"
+template >"${filename}.py"
