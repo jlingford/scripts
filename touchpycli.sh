@@ -32,9 +32,8 @@ from pathlib import Path
 
 
 def parse_arguments():
-    """
-    Parse arguments to script
-    """
+    """Parse arguments to script"""
+
     parser = argparse.ArgumentParser(
         description="Description goes here",
         epilog="Example %(prog)s -i INPUT [-o OUTPUT]"
@@ -73,10 +72,9 @@ def parse_arguments():
     return args
 
 
-def func(args):
-    """
-    Stuff goes here
-    """
+def primary_function(args):
+    """Stuff goes here"""
+
     # do stuff...
 
 
