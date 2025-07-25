@@ -38,7 +38,7 @@ suffix1=${COV##*.}
 suffix3=${COVMODE}
 suffix4=${CLUSTMODE}
 
-# WARN: chainge each job
+# WARN: change each job
 INPUTDIR='./fastainput/globdb_newhits_v3'
 # step 0: place fasta files for clustering in ./fastainput directory
 # step 1 (done): create sequenceDB out of fastas
