@@ -7,12 +7,14 @@ if [ -z "$1" ]; then
     exit 1
 fi
 
+# WARN: multi-fasta file and a3m dir name have to share the same name
+
 # take input fasta
 input_file="$1"
 
 # create output_dir
-output_dir=${input_file##*/}
-output_dir=${output_dir%.*}
+output_dir=${input_file%.*}
+file_name=${output_dir##*/}
 mkdir -p "${output_dir}"
 
 # awk funciton to split fastas
@@ -41,7 +43,7 @@ for file in "${output_dir}"/*.fasta; do
     name=${file##*/}
     name=${name%%.*}
 
-    sed -i "s#^>.*#>A|protein|./msas/${output_dir}/${name}.a3m#" "${file}"
+    sed -i "s#^>.*#>A|protein|./msas/${file_name}/${name}.a3m#" "${file}"
 
 done
 
