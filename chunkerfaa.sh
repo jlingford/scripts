@@ -52,8 +52,8 @@ outdir=${name}_SPLIT_FASTAS
 mkdir -p $outdir
 
 faa2tsv.sh $input |
-    split -a 3 -d -l 2000 - ${name}_CHUNK --filter='mv $FILE $outdir'
+    (cd $outdir && split -a 3 -d -l 2000 - ${name}_CHUNK)
 
-for file in $outdir; do
+for file in ${outdir}/*; do
     tsv2faa.sh $file >${file}.faa && rm $file
 done
