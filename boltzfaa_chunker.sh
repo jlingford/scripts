@@ -47,5 +47,15 @@ for file in "${output_dir}"/*.fasta; do
 
 done
 
+# split the fasta files into chunks of 5000 between new dirs
+chunksize=5000
+file_count=0
+for file in ${output_dir}/*.fasta; do
+    dir=CHUNK$(printf %03d $((file_count / chunksize)))
+    mkdir -p $dir
+    mv $file $dir
+    ((file_count++))
+done
+
 # mv *.faa ${output_dir}
 # mv ${output_dir}/${input_file} .
