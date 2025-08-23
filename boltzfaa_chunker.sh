@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/bash
 
 # WARN: multi-fasta file and a3m dir name have to share the same name
 # take input fasta
@@ -53,7 +53,7 @@ chunksize=2500
 file_count=0
 for file in "${output_dir}"/*.fasta; do
     chunk_dir=CHUNK$(printf %03d $((file_count / chunksize)))
-    dir="${output_dir}"/"$chunk_dir"
+    dir="${output_dir}"/"${chunk_dir}"
     mkdir -p "$dir"
     mv "$file" "$dir"
     ((file_count++))
