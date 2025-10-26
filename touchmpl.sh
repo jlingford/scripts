@@ -15,12 +15,14 @@ template() {
     cat <<'EOF'
 #!/usr/bin/env python3
 """
-Small python script
+Small python script to plot something
 """
 
+import sys
 import argparse
 import numpy as np
 import pandas as pd
+import polars as pl
 import seaborn as sns
 import matplotlib.pyplot as plt
 from pathlib import Path
@@ -30,11 +32,7 @@ import matplotlib.ticker as ticker
 from matplotlib.ticker import FormatStrFormatter
 
 
-# parse cli args
-parser = argparse.ArgumentParser()
-parser.add_argument("input", help="Input data file", type=Path)
-args = parser.parse_args()
-
+#=============================================
 # set font
 arial_font = "/home/james/Downloads/arial.ttf"
 arial_font_bold = "/home/james/Downloads/Arial Bold.ttf"
@@ -44,17 +42,41 @@ rcParams["font.sans-serif"] = "Arial"
 rcParams["font.family"] = "Arial"
 rcParams["font.size"] = 10
 
+#=============================================
+# parse cli args
+parser = argparse.ArgumentParser()
+parser.add_argument("input", help="Input data file", type=Path)
+args = parser.parse_args()
 
-def custom_plot(inputfile, filename):
+# or import from sys
+file = Path(sys.argv[1])
+
+#=============================================
+# uses argparse to take input
+
+def custom_plot(file, filename):
     """Plot"""
+
+    # read data
+    df = pl.read_csv(
+        file,
+        separator="\t",
+        has_header=False,
+        new_columns=["col1", "col2"]
+    )
+    print(df)
+
+    # make plot
+    fig, ax = plt.subplots(figsize=(5,5))
 
     # write plot
     plt.savefig(
-        f"./{name}_summary_plot.png",
+        f"./plot_{filename}.png",
         format="png",
-        dpi=100,
+        dpi=300,
         bbox_inches="tight",
     )
+    plt.tight_layout()
     plt.show()
     plt.close("all")
 
