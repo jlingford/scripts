@@ -14,8 +14,8 @@ echo "#!/bin/bash -l
 #SBATCH --time=4:00:00
 #SBATCH --mail-user=james.lingford@monash.edu
 #SBATCH --mail-type=BEGIN,END,FAIL,TIME_OUT
-#SBATCH --error=log-%j.err
-#SBATCH --output=log-%j.out
+#SBATCH --error=logs/%j.err
+#SBATCH --output=logs/%j.out
 
 # ---
 " >>slurm_cpu.sh
