@@ -59,7 +59,7 @@ while IFS=$'\t' read -r col1 col2 col3 col4; do
     # make output fasta name
     outputname="${name1}-${name2}_Ctermtrim.fasta"
 
-    # use printf to convert columns from tsv into fasta format (replace with newlines)
+    # use printf to convert columns from tsv into fasta format (replace tabs with newlines)
     printf "%s\n%s\n%s\n%s\n" $col1 $col2 $col3 $col4 >trimmed/$outputname
 
 done <boltz_TRIMMED_lsussu.tsv
