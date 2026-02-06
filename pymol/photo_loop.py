@@ -73,7 +73,7 @@ def quick_capture_all():
         cmd.hide("everything", "all")
         cmd.show("cartoon", model)
         # showing cysteines...
-        cmd.show("sticks", f"cyst and {model}")
+        # cmd.show("sticks", f"cyst and {model}")
         cmd.zoom(model)
         cmd.ray(1000, 1000)
         cmd.png(f"{model}.png", dpi=300)
