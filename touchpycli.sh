@@ -8,72 +8,75 @@ if [[ $# -eq 0 ]]; then
     exit 1
 fi
 
-touch ${filename}.py
-chmod u+x ${filename}.py
+touch "${filename}.py"
+chmod +x "${filename}.py"
 
 template() {
     cat <<'EOF'
 #!/usr/bin/env python3
 """
-Small python script
+Description
 """
 
-import os
-import re
-import sys
-import shutil
-import argparse
-import numpy as np
-import pandas as pd
-import seaborn as sns
-import matplotlib.pyplot as plt
 from Bio import SeqIO
 from pathlib import Path
+import argparse
+import gzip
+import json
+import logging
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+import polars as pl
+import re
+import seaborn as sns
+import shutil
+import subprocess
+import sys
 
 
-def parse_arguments():
-    """Parse arguments to script"""
-
+def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Description goes here",
-        epilog="Example %(prog)s -i INPUT [-o OUTPUT]"
+        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
     )
 
-    # Add arguments
     parser.add_argument(
         "-i",
         "--input",
-        dest="input_file",
+        dest="input",
         type=Path,
+        metavar="IN",
         required=True,
-        help="Path to input file (required)."
+        help="Path to input [Required]",
     )
 
     parser.add_argument(
         "-o",
-        "--output",
-        dest="output_file",
+        "--outdir",
+        dest="outdir",
         type=Path,
-        default=Path("."),
         required=False,
-        help="Path to output file. [Default: current dir]"
+        default=".",
+        metavar="DIR",
+        help="Output target directory [Optional][Default: cwd]",
     )
 
-    # Parse arguments into args object
     args = parser.parse_args()
 
-    # Validate arguments
-    if not args.input_file.is_file():
-        parser.error(f"Input file does not exist or is not a file: {args.input_file}")
-
-    if not args.output_file.is_dir():
-        parser.error(f"Output directory does not exist or is not a directory: {args.output_dir}")
+    if not args.input.exists():
+        parser.error(f"Input does not exist: {args.input}")
 
     return args
 
 
 def primary_function(args):
-    """Stuff goes here"""
+    """
+    Description
+
+    Args:
+
+    Returns:
+    """
 
     # do stuff...
 
@@ -84,7 +87,7 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    exit(main())
 EOF
 }
 
