@@ -64,6 +64,7 @@ def extract_dna_from_genbank(
                 if target_gene_id == gene_name:
                     # print(gene_name)
                     dna_seq = feat.extract(rec.seq)
+                    # dna_seq = feat.location.extract(rec).seq # this will also work
                     # print(dna_seq)
                     # trans_seq = feat.translate(rec.seq)
                     # print(trans_seq)
