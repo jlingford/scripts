@@ -16,6 +16,18 @@ template() {
 #!/usr/bin/env python3
 """
 Description
+
+Input:
+    ...
+Output:
+    ...
+Purpose:
+    ...
+Prerequisites:
+    ...
+\033[1m\033[31mWARNING:\033[0m
+    ...
+
 """
 
 from Bio import SeqIO
@@ -69,21 +81,22 @@ def parse_args() -> argparse.Namespace:
     return args
 
 
-def primary_function(args):
-    """
-    Description
+def funca(args):
+    """Description
 
     Args:
+        arg1 (dtype): description
 
     Returns:
+        dtype: description
     """
 
     # do stuff...
 
 
 def main():
-    args = parse_arguments()
-    primary_function(args)
+    args = parse_args()
+    funca(args)
 
 
 if __name__ == "__main__":
