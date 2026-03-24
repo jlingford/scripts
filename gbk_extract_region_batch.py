@@ -1,10 +1,15 @@
 #!/usr/bin/env python3
 """
-Extracts the genomic neighbourhood of a target gene from a Genbank file.
+BATCH extracts the genomic neighbourhoods of target genes from Genbank files.
 
 Input:
-    - path to the full Genbank file (.gbk)
-    - the target gene ID (str)
+    - path to the input table
+        Input list should have three tab-separated fields per line:
+
+            col1: path/to/genbankfile.gbk
+            col2: target gene ID
+            col3: path to output directory
+
     - size of region to slice upstream and downstream of the target gene (Default: ±10,000 bp)
 
 Output:
@@ -14,18 +19,17 @@ Purpose:
     - to get smaller genbank files of a target genes genomic context, which can be provided to programs like 'clinker' or 'gggenes' for plotting/visualising the genomic context
 
 \033[1m\033[32mTip for running multiple jobs in batch:\033[0m
-    Step 1. Write a table with the path to genbank input, target gene ID, output dir, etc. E.g.,
+    Step 1. Write a tab-separated table (.tsv) with the path to genbank input, target gene ID, output dir, etc. E.g.,
 
-        `path/to/genbank1.gbk,gene_ID,path/to/output`
-
-    Step 2. Run gnu parallel:
-
-        `parallel --colsep ',' python gbk_extract_region.py -g {1} -t {2} -o {3} ::: table.csv`
+        `path/to/genbank1.gbk   gene_ID    path/to/output`
 """
 # TODO:
 # - [ ] add logging
 # - [ ] add ability to read gzipped genbank files
 
+from concurrent import futures
+from concurrent.futures import ProcessPoolExecutor
+from functools import partial
 from Bio import SeqIO
 from Bio.Seq import Seq
 from Bio.SeqFeature import SeqFeature, FeatureLocation
@@ -49,35 +53,45 @@ def parse_args() -> argparse.Namespace:
     )
 
     parser.add_argument(
-        "-t",
-        "--target_gene",
-        dest="target_gene",
-        type=str,
-        metavar="STR",
+        "-i",
+        "--input_list",
+        dest="input_list",
+        type=Path,
+        metavar="TSV",
         required=True,
-        help="ID of target gene to extract region from [Required]",
+        help="Path to input .tsv with list of inputs. Columns should be COL1: path/to/genbank; COL2: target gene ID; COL3: path to output directory [Required]",
     )
 
-    parser.add_argument(
-        "-g",
-        "--genbank",
-        dest="genbank_input",
-        type=Path,
-        metavar="GBK",
-        required=True,
-        help="Path to input .gbk file [Required]",
-    )
-
-    parser.add_argument(
-        "-o",
-        "--outdir",
-        dest="outdir",
-        type=Path,
-        required=False,
-        default=".",
-        metavar="DIR",
-        help="Output target directory [Optional][Default: cwd]",
-    )
+    # parser.add_argument(
+    #     "-t",
+    #     "--target_gene",
+    #     dest="target_gene",
+    #     type=str,
+    #     metavar="STR",
+    #     required=True,
+    #     help="ID of target gene to extract region from [Required]",
+    # )
+    #
+    # parser.add_argument(
+    #     "-g",
+    #     "--genbank",
+    #     dest="genbank_input",
+    #     type=Path,
+    #     metavar="GBK",
+    #     required=True,
+    #     help="Path to input .gbk file [Required]",
+    # )
+    #
+    # parser.add_argument(
+    #     "-o",
+    #     "--outdir",
+    #     dest="outdir",
+    #     type=Path,
+    #     required=False,
+    #     default=".",
+    #     metavar="DIR",
+    #     help="Output target directory [Optional][Default: cwd]",
+    # )
 
     parser.add_argument(
         "-u",
@@ -107,6 +121,14 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         required=False,
         help="Default behaviour redefines gene coordinates and removes any genes that overlap with upstream/downstream boundaries. This is ideal for `clinker`, but maybe not for `gggenes`. This flag turns this behaviour off.",
+    )
+
+    parser.add_argument(
+        "--no_overwrite",
+        dest="no_overwrite",
+        action="store_true",
+        required=False,
+        help="If sliced genbank already exists in output, do not overwrite it [Default: Disabled]",
     )
 
     args = parser.parse_args()
@@ -269,10 +291,11 @@ def slice_genbank(
     sliced_rec.annotations["molecule_type"] = full_rec.annotations.get(
         "molecule_type", "DNA"
     )
+    # TODO: remove?
     # add annotations/metainfo to genbank file
-    genome_id = args.genbank_input.stem
-    sliced_rec.annotations["accession"] = genome_id
-    sliced_rec.annotations["source"] = genome_id
+    # genome_id = genbank_input.stem
+    # sliced_rec.annotations["accession"] = genome_id
+    # sliced_rec.annotations["source"] = genome_id
     # sliced_rec.annotations["comment"] = "Genome source: GlobDB r226"
     # sliced_rec.annotations["date"] = today
     # sliced_rec.annotations["organism"] = species_dict[genome_id]
@@ -293,19 +316,101 @@ def slice_genbank(
 
 
 # =======================================================================
+def process_input_table(
+    input_list: Path,
+    args: argparse.Namespace,
+) -> tuple[list[Path], list[str], list[Path]]:
+    """Reads input table and processes each field for input into slice_genbank(). Utility function
+
+    Input list should have three tab-separated fields per line:
+
+        col1: path/to/genbankfile.gbk
+        col2: target gene ID
+        col3: path to output directory
+
+    Args:
+        input_list (Path): path to input_list.tsv
+
+    Returns:
+        input_paths (list[Path]): a list of paths to the genbank files
+        input_targets (list[str]): a list of target_gene IDs
+        input_outdirs (list[Path]): a list of paths to the output dirs
+    """
+    # init empty lists
+    input_paths, input_targets, input_outdirs = [], [], []
+
+    # read input list
+    with open(input_list, "r") as in_handle:
+        while line := in_handle.readline():
+            # split line into fields
+            fields = line.rstrip().split("\t")
+
+            # extract field info
+            path = Path(fields[0])
+            target = fields[1]
+            outdir = Path(fields[2])
+
+            ########### NO OVERWRITE OPTION ################
+            if args.no_overwrite is True:
+                outpath = outdir / f"{path.stem}___{target}-genomic_region.gbk"
+                if outpath.exists():
+                    print(f"Skipping: output genbank exists: {outpath}")
+                    continue
+
+            # append to lists
+            input_paths.append(path)
+            input_targets.append(target)
+            input_outdirs.append(outdir)
+
+    return input_paths, input_targets, input_outdirs
+
+
+# =======================================================================
 def main() -> None:
     # parse args
     args = parse_args()
 
-    # run core function
-    slice_genbank(
-        genbank_input=args.genbank_input,
-        target_gene=args.target_gene,
-        outdir=args.outdir,
+    # get input fields from input table
+    input_paths, input_targets, input_outdirs = process_input_table(
+        input_list=args.input_list,
+        args=args,
+    )
+
+    # # run core function in for loop
+    # for path, target, outdir in zip(input_paths, input_targets, input_outdirs):
+    #     slice_genbank(
+    #         genbank_input=path,
+    #         target_gene=target,
+    #         outdir=outdir,
+    #         upstream=args.upstream,
+    #         downstream=args.downstream,
+    #         args=args,
+    #     )
+
+    ##################################
+    # BATCH PROCESSING!
+    ##################################
+
+    # create partial func for mapping
+    slice_genbank_partial = partial(
+        slice_genbank,
         upstream=args.upstream,
         downstream=args.downstream,
         args=args,
     )
+    # use ProcessPoolExecutor
+    with ProcessPoolExecutor() as exe:
+        futures = [
+            # use submit(), allows for passing multiple iterable args, unlike map()
+            exe.submit(
+                slice_genbank_partial,
+                genbank_input=path,
+                target_gene=target,
+                outdir=outdir,
+            )
+            for path, target, outdir in zip(input_paths, input_targets, input_outdirs)
+        ]
+        results = [f.result() for f in futures]
 
 
 if __name__ == "__main__":
