@@ -10,9 +10,7 @@ fi
 input_file="$1"
 output_dir="$2"
 
-if [[ ! -d $output_dir ]]; then
-    mkdir -p "${output_dir}"
-fi
+mkdir -p "${output_dir}"
 
 awk -v outdir="${output_dir}" '
   BEGIN {
