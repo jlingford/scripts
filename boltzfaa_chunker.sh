@@ -44,7 +44,7 @@ for file in "${output_dir}"/*.fasta; do
     name=${file##*/}
     name=${name%%.*}
 
-    sed -i "s#^>.*#>A|protein|${PATHTOMSAS}/${name}.a3m#" "${file}"
+    sed -i "/>/ s#^>.*#>A|protein|${PATHTOMSAS}/${name}.a3m#" "${file}"
 
 done
 
