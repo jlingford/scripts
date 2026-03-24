@@ -29,7 +29,7 @@ Prerequisites:
     ...
 
 """
-# TODO
+# TODO:
 # - [ ]
 
 from Bio import SeqIO
@@ -101,7 +101,7 @@ def funca(args):
     print("Hello world")
 
 
-def main():
+def main() -> None:
     args = parse_args()
     funca(args)
 
