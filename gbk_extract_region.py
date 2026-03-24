@@ -119,7 +119,7 @@ def find_target_location(
     gbk_file: Path,
     target_gene: str,
     args: argparse.Namespace,
-) -> tuple[SeqRecord, SimpleLocation] | None:
+) -> tuple[SeqRecord, SimpleLocation]:
     """Finds target gene in Genbank and returns its location coordinates and the contig its on (i.e., "feature")
 
     Args:
@@ -131,8 +131,8 @@ def find_target_location(
         target_loc (SimpleLocation): the location coordinates of the target_gene (biopython object)
     """
     # init empty var
-    full_rec: SeqRecord | None = None
-    target_loc: SimpleLocation | None = None
+    full_rec: SeqRecord = None
+    target_loc: SimpleLocation = None
 
     for rec in SeqIO.parse(gbk_file, "genbank"):
         # loop over genbank features to get to target_gene_id
@@ -150,9 +150,8 @@ def find_target_location(
 
                 return full_rec, target_loc
 
-    # error logging
-    if (target_loc or full_rec) is None:
-        raise Exception("Target gene not found in genome")
+    # error logging if nothing matches
+    raise Exception("Target gene not found in genome")
 
 
 # =======================================================================

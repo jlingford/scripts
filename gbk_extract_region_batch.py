@@ -13,7 +13,9 @@ Input:
     - size of region to slice upstream and downstream of the target gene (Default: ±10,000 bp)
 
 Output:
-    - writes a 'sliced' genbank file to output directory
+    - writes a 'sliced' genbank file to output directory. File naming format is:
+
+            `<genomeID>___<targetgeneID>-genomic_region.gbk`
 
 Purpose:
     - to get smaller genbank files of a target genes genomic context, which can be provided to programs like 'clinker' or 'gggenes' for plotting/visualising the genomic context
@@ -141,7 +143,7 @@ def find_target_location(
     gbk_file: Path,
     target_gene: str,
     args: argparse.Namespace,
-) -> tuple[SeqRecord, SimpleLocation] | None:
+) -> tuple[SeqRecord, SimpleLocation]:
     """Finds target gene in Genbank and returns its location coordinates and the contig its on (i.e., "feature")
 
     Args:
@@ -153,8 +155,8 @@ def find_target_location(
         target_loc (SimpleLocation): the location coordinates of the target_gene (biopython object)
     """
     # init empty var
-    full_rec: SeqRecord | None = None
-    target_loc: SimpleLocation | None = None
+    full_rec: SeqRecord = None
+    target_loc: SimpleLocation = None
 
     for rec in SeqIO.parse(gbk_file, "genbank"):
         # loop over genbank features to get to target_gene_id
@@ -172,9 +174,8 @@ def find_target_location(
 
                 return full_rec, target_loc
 
-    # error logging
-    if (target_loc or full_rec) is None:
-        raise Exception("Target gene not found in genome")
+    # error logging if nothing matches
+    raise Exception("Target gene not found in genome")
 
 
 # =======================================================================
@@ -376,7 +377,7 @@ def main() -> None:
         args=args,
     )
 
-    # # run core function in for loop
+    # # run core function in a regular for loop
     # for path, target, outdir in zip(input_paths, input_targets, input_outdirs):
     #     slice_genbank(
     #         genbank_input=path,
@@ -410,6 +411,7 @@ def main() -> None:
             )
             for path, target, outdir in zip(input_paths, input_targets, input_outdirs)
         ]
+        # yield results
         results = [f.result() for f in futures]
 
 
