@@ -53,9 +53,11 @@ import subprocess
 import sys
 
 
+# =============================================================
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
     )
 
     parser.add_argument(
@@ -81,28 +83,30 @@ def parse_args() -> argparse.Namespace:
 
     args = parser.parse_args()
 
-    if not args.input.exists():
-        parser.error(f"Input does not exist: {args.input}")
-
     return args
 
 
+# =============================================================
 def funca(args):
     """Description
 
+    ---
     Args:
         arg1 (dtype): description
 
     Returns:
         dtype: description
     """
-
-    # do stuff...
+    # stuff
     print("Hello world")
 
 
+# =============================================================
 def main() -> None:
+    # get args
     args = parse_args()
+
+    # func
     funca(args)
 
 
