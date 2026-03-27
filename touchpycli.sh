@@ -103,6 +103,13 @@ def funca(args):
 
 # =============================================================
 def main() -> None:
+    """Workflow:
+    ---
+    main
+     ├── args
+     └── func
+     │
+    """
     # get args
     args = parse_args()
 
