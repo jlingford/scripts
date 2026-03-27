@@ -21,15 +21,32 @@ Purpose:
     - to get smaller genbank files of a target genes genomic context, which can be provided to programs like 'clinker' or 'gggenes' for plotting/visualising the genomic context
 
 \033[1m\033[32mTip for running multiple jobs in batch:\033[0m
-    Step 1. Write a tab-separated table (.tsv) with the path to genbank input, target gene ID, output dir, etc. E.g.,
+    Write a tab-separated table (.tsv) with the path to genbank input, target gene ID, output dir, etc. E.g.,
 
         `path/to/genbank1.gbk   gene_ID    path/to/output`
+
+    To generate this .tsv easily, run this bash script within your target directory filled with genbank files:
+
+        ```
+        # requires "ripgrep" to be installed
+        # use -d 1 to control max depth ripgrep searches to
+        # -F: fixed strings (very important for exact match)
+        # $(pwd) will add the absolute path to the output
+
+        rg -d 1 -F -f YOUR_GENE_ID_LIST.txt $(pwd) |
+            sed 's/://' |
+            sed 's#/locus_tag="##' |
+            sed 's/"$//' |
+            sed 's#$#\\tPATH_TO_YOUR_OUTDIR#' |
+            awk -vOFS="\\t" '{$1=$1}1'
+            > NAME_OF_INDEX.tsv
+        ```
+
 """
 # TODO:
 # - [ ] add logging
-# - [ ] add ability to read gzipped genbank files
+# - [x] add ability to read gzipped genbank files
 
-from concurrent import futures
 from concurrent.futures import ProcessPoolExecutor
 from functools import partial
 from Bio import SeqIO
@@ -38,8 +55,10 @@ from Bio.SeqFeature import SeqFeature, FeatureLocation
 from Bio.SeqFeature import SimpleLocation
 from Bio.SeqRecord import SeqRecord
 from pathlib import Path
+from typing import TextIO
 import argparse
 import sys
+import gzip
 import warnings
 
 
@@ -51,7 +70,8 @@ warnings.filterwarnings("ignore")
 # =======================================================================
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
     )
 
     parser.add_argument(
@@ -63,37 +83,6 @@ def parse_args() -> argparse.Namespace:
         required=True,
         help="Path to input .tsv with list of inputs. Columns should be COL1: path/to/genbank; COL2: target gene ID; COL3: path to output directory [Required]",
     )
-
-    # parser.add_argument(
-    #     "-t",
-    #     "--target_gene",
-    #     dest="target_gene",
-    #     type=str,
-    #     metavar="STR",
-    #     required=True,
-    #     help="ID of target gene to extract region from [Required]",
-    # )
-    #
-    # parser.add_argument(
-    #     "-g",
-    #     "--genbank",
-    #     dest="genbank_input",
-    #     type=Path,
-    #     metavar="GBK",
-    #     required=True,
-    #     help="Path to input .gbk file [Required]",
-    # )
-    #
-    # parser.add_argument(
-    #     "-o",
-    #     "--outdir",
-    #     dest="outdir",
-    #     type=Path,
-    #     required=False,
-    #     default=".",
-    #     metavar="DIR",
-    #     help="Output target directory [Optional][Default: cwd]",
-    # )
 
     parser.add_argument(
         "-u",
@@ -118,6 +107,17 @@ def parse_args() -> argparse.Namespace:
     )
 
     parser.add_argument(
+        "-c",
+        "--cpu",
+        dest="cpu",
+        type=int,
+        default=None,
+        metavar="N",
+        required=False,
+        help="No. of CPUs to use for parallelism [Default: max available]",
+    )
+
+    parser.add_argument(
         "--not_clinker_safe",
         dest="not_clinker_safe",
         action="store_true",
@@ -138,6 +138,15 @@ def parse_args() -> argparse.Namespace:
     return args
 
 
+# =============================================================
+def open_gz(file: Path) -> TextIO:
+    """Utility function: open file, even if it is gzipped"""
+    if file.suffix == ".gz":
+        return gzip.open(file, "rt")
+    else:
+        return open(file, "r")
+
+
 # =======================================================================
 def find_target_location(
     gbk_file: Path,
@@ -146,6 +155,7 @@ def find_target_location(
 ) -> tuple[SeqRecord, SimpleLocation]:
     """Finds target gene in Genbank and returns its location coordinates and the contig its on (i.e., "feature")
 
+    ---
     Args:
         gbk_file (Path): path to full genbank input file
         target_gene (str): ID of target gene
@@ -158,21 +168,23 @@ def find_target_location(
     full_rec: SeqRecord = None
     target_loc: SimpleLocation = None
 
-    for rec in SeqIO.parse(gbk_file, "genbank"):
-        # loop over genbank features to get to target_gene_id
-        for feat in rec.features:
-            if feat.type != "CDS":
-                continue
+    ############## read genbank file for target_gene #################
+    with open_gz(file=gbk_file) as infile:
+        for rec in SeqIO.parse(infile, "genbank"):
+            # loop over genbank features to get to target_gene_id
+            for feat in rec.features:
+                if feat.type != "CDS":
+                    continue
 
-            # feat.qualifiers is a dict[str, list[str]]; get gene_name from locus_tag
-            gene_name = feat.qualifiers.get("locus_tag", [0])[0]
+                # feat.qualifiers is a dict[str, list[str]]; get gene_name from locus_tag
+                gene_name = feat.qualifiers.get("locus_tag", [0])[0]
 
-            # return info
-            if target_gene == gene_name:
-                target_loc = feat.location
-                full_rec = rec
+                # return info
+                if target_gene == gene_name:
+                    target_loc = feat.location
+                    full_rec = rec
 
-                return full_rec, target_loc
+                    return full_rec, target_loc
 
     # error logging if nothing matches
     raise Exception("Target gene not found in genome")
@@ -189,6 +201,7 @@ def slice_genbank(
 ) -> None:
     """Slice a Genbank file into a smaller region surrounding a target gene
 
+    ---
     Args:
         genbank_input (Path): path to full genbank input file
         target_gene (str): ID of target gene (must match ID on genome)
@@ -327,8 +340,9 @@ def process_input_table(
 
         col1: path/to/genbankfile.gbk
         col2: target gene ID
-        col3: path to output directory
+        col3: path/to/output/directory
 
+    ---
     Args:
         input_list (Path): path to input_list.tsv
 
@@ -368,6 +382,14 @@ def process_input_table(
 
 # =======================================================================
 def main() -> None:
+    """Workflow:
+    ---
+    main
+     └── process_input_table
+     └── ProcessPoolExecutor
+          └── slice_genbank
+               └── find_target_location
+    """
     # parse args
     args = parse_args()
 
@@ -400,7 +422,7 @@ def main() -> None:
         args=args,
     )
     # use ProcessPoolExecutor
-    with ProcessPoolExecutor() as exe:
+    with ProcessPoolExecutor(max_workers=args.cpu) as exe:
         futures = [
             # use submit(), allows for passing multiple iterable args, unlike map()
             exe.submit(
