@@ -32,10 +32,14 @@ import logging
 import pickle
 import sys
 import warnings
+import os
 
 # =============================================================
 # ignore biopython warnings, which just clog up the STDOUT
 warnings.filterwarnings("ignore")
+
+# default cpu count = max cpus available
+CPU = os.cpu_count()
 
 
 # =============================================================
@@ -70,10 +74,10 @@ def parse_args() -> argparse.Namespace:
         "--cpu",
         dest="cpu",
         type=int,
-        default=4,
+        default=CPU,
         metavar="N",
         required=False,
-        help="No. of CPUs to use for parallelism [Default: 4]",
+        help="No. of CPUs to use for parallelism [Default: max available]",
     )
 
     parser.add_argument(
