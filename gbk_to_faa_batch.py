@@ -71,7 +71,7 @@ def parse_args() -> argparse.Namespace:
 
     # create default outdir from input dir
     if args.outdir is None:
-        input_parentdir = Path(args.input_dir.parent)
+        input_parentdir = Path(args.input_dir)
         args.outdir = input_parentdir
 
     return args
@@ -101,7 +101,7 @@ def gbk_to_faa(
         None: writes output .faa file that shares the same name as the input genbank_file
     """
     ############# make output file ###################
-    outfaa = Path(outdir) / f"{args.input_dir.stem}.faa"
+    outfaa = Path(outdir) / f"{genbank_file.stem}.faa"
     if outfaa.exists():
         outfaa.unlink()
     outfaa.parent.mkdir(parents=True, exist_ok=True)
@@ -135,7 +135,7 @@ def main() -> None:
     args = parse_args()
 
     # get all input genbank files
-    gbk_files = [f for f in Path(args.input_dir).glob("*.gb*") if f.is_file()]
+    gbk_files = sorted([f for f in Path(args.input_dir).glob("*.gb*") if f.is_file()])
 
     ############### PARALLEL PROCESSING ###################
 
