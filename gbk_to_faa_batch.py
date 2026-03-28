@@ -71,7 +71,7 @@ def parse_args() -> argparse.Namespace:
 
     # create default outdir from input dir
     if args.outdir is None:
-        input_parentdir = Path(args.input.parent)
+        input_parentdir = Path(args.input_dir.parent)
         args.outdir = input_parentdir
 
     return args
@@ -101,7 +101,7 @@ def gbk_to_faa(
         None: writes output .faa file that shares the same name as the input genbank_file
     """
     ############# make output file ###################
-    outfaa = Path(outdir) / f"{args.input.stem}.faa"
+    outfaa = Path(outdir) / f"{args.input_dir.stem}.faa"
     if outfaa.exists():
         outfaa.unlink()
     outfaa.parent.mkdir(parents=True, exist_ok=True)
