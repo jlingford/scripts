@@ -33,27 +33,27 @@ Prerequisites:
 # - [ ]
 
 from Bio import SeqIO
-from concurrent.futures import ProcessPoolExecutor
-from functools import partial
 from itertools import combinations
 from pathlib import Path
+from typing import TextIO, NamedTuple
 import argparse
 import gzip
-import json
 import logging
-import matplotlib.pyplot as plt
 import numpy as np
-import os
-import pandas as pd
 import polars as pl
-import re
-import seaborn as sns
 import shutil
 import subprocess
 import sys
 
 
-# =============================================================
+# =================================================================
+# CLI args
+# =================================================================
+class Args(NamedTuple):
+    infile: Path
+    outdir: Path
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description=__doc__,
@@ -62,10 +62,9 @@ def parse_args() -> argparse.Namespace:
 
     parser.add_argument(
         "-i",
-        "--input",
-        dest="input",
+        "--infile",
         type=Path,
-        metavar="IN",
+        metavar="FILE",
         required=True,
         help="Path to input [Required]",
     )
@@ -73,7 +72,6 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "-o",
         "--outdir",
-        dest="outdir",
         type=Path,
         required=False,
         default=".",
@@ -83,9 +81,11 @@ def parse_args() -> argparse.Namespace:
 
     args = parser.parse_args()
 
-    return args
+    return Args(**vars(args))
 
 
+# =============================================================
+# Core func.
 # =============================================================
 def funca(args):
     """Description
@@ -117,6 +117,7 @@ def main() -> None:
     funca(args)
 
 
+# =============================================================
 if __name__ == "__main__":
     sys.exit(main())
 EOF

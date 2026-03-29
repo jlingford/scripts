@@ -15,7 +15,14 @@ template() {
     cat <<'EOF'
 #!/usr/bin/env python3
 """
-Small python script to plot something
+Description
+
+Input:
+    ...
+Output:
+    ...
+Prerequisites:
+    ...
 """
 
 import sys
@@ -42,11 +49,60 @@ rcParams["font.sans-serif"] = "Arial"
 rcParams["font.family"] = "Arial"
 rcParams["font.size"] = 10
 
-#=============================================
-# parse cli args
-parser = argparse.ArgumentParser()
-parser.add_argument("input", help="Input data file", type=Path)
-args = parser.parse_args()
+# =============================================================
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+
+    parser.add_argument(
+        "-i",
+        "--input",
+        dest="input",
+        type=Path,
+        metavar="IN",
+        required=True,
+        help="Path to input file [Required]",
+    )
+
+    parser.add_argument(
+        "-o",
+        "--outdir",
+        dest="outdir",
+        type=Path,
+        required=False,
+        default="plots",
+        metavar="DIR",
+        help="Output target directory [Optional][Default: $(pwd)/plots]",
+    )
+
+    parser.add_argument(
+        "-D",
+        "--dpi",
+        dest="dpi",
+        type=int,
+        required=False,
+        default=300,
+        metavar="N",
+        help="Resolution in dpi for output .png [Default: 300]",
+    )
+
+    parser.add_argument(
+        "-F",
+        "--arial_fonts",
+        dest="arial_fonts",
+        type=Path,
+        required=False,
+        default="./auxfiles",
+        metavar="TFF",
+        help="Path to Arial fonts dir",
+    )
+
+    args = parser.parse_args()
+
+    return args
+
 
 # or import from sys
 file = Path(sys.argv[1])
