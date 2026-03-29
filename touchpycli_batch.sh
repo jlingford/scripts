@@ -99,9 +99,9 @@ def parse_args() -> argparse.Namespace:
         help="Run script synchronously, not in parallel",
     )
 
-    args = parser.parse_args()
+    args = Args(**vars(parser.parse_args()))
 
-    return Args(**vars(args))
+    return args
 
 
 # =============================================================

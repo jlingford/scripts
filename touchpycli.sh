@@ -79,9 +79,9 @@ def parse_args() -> argparse.Namespace:
         help="Output target directory [Optional][Default: cwd]",
     )
 
-    args = parser.parse_args()
+    args = Args(**vars(parser.parse_args()))
 
-    return Args(**vars(args))
+    return args
 
 
 # =============================================================
