@@ -138,6 +138,40 @@ def custom_plot(file, filename):
 
 
 custom_plot(args.input, args.input.stem)
+
+# =============================================================
+def funca(args):
+    """Description
+
+    ---
+    Args:
+        arg1 (dtype): description
+
+    Returns:
+        dtype: description
+    """
+    # stuff
+    print("Hello world")
+
+
+# =============================================================
+def main() -> None:
+    """Workflow:
+    ---
+    main
+     ├── args
+     └── func
+     │
+    """
+    # get args
+    args = parse_args()
+
+    # func
+    funca(args)
+
+
+if __name__ == "__main__":
+    sys.exit(main())
 EOF
 }
 
