@@ -36,6 +36,7 @@ from Bio import SeqIO
 from itertools import combinations
 from pathlib import Path
 from typing import TextIO, NamedTuple
+from dataclasses import dataclass
 import argparse
 import gzip
 import logging
@@ -46,15 +47,17 @@ import subprocess
 import sys
 
 
-# =================================================================
+# =============================================================================
 # CLI args
-# =================================================================
+# =============================================================================
+@dataclass
 class Args(NamedTuple):
     infile: Path
     outdir: Path
 
 
-def parse_args() -> argparse.Namespace:
+def parse_args() -> Args:
+    """Argument parsing"""
     parser = argparse.ArgumentParser(
         description=__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter,
@@ -84,9 +87,9 @@ def parse_args() -> argparse.Namespace:
     return args
 
 
-# =============================================================
+# =============================================================================
 # Core func.
-# =============================================================
+# =============================================================================
 def funca(args):
     """Description
 
@@ -101,7 +104,7 @@ def funca(args):
     print("Hello world")
 
 
-# =============================================================
+# =============================================================================
 def main() -> None:
     """Workflow:
     ---
@@ -117,7 +120,7 @@ def main() -> None:
     funca(args)
 
 
-# =============================================================
+# =============================================================================
 if __name__ == "__main__":
     sys.exit(main())
 EOF

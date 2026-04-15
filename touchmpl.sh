@@ -51,6 +51,7 @@ rcParams["font.size"] = 10
 
 # =============================================================
 def parse_args() -> argparse.Namespace:
+    """Argument parsing"""
     parser = argparse.ArgumentParser(
         description=__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter,

@@ -38,6 +38,7 @@ from Bio import SeqIO
 from itertools import combinations
 from pathlib import Path
 from typing import TextIO, NamedTuple
+from dataclasses import dataclass
 import argparse
 import gzip
 import logging
@@ -48,10 +49,11 @@ import subprocess
 import sys
 
 
-# =================================================================
+# =============================================================================
 # CLI args
-# =================================================================
-class Args(NamedTuple):
+# =============================================================================
+@dataclass
+class Args:
     indir: Path
     outdir: Path
     cpu: int
@@ -59,6 +61,7 @@ class Args(NamedTuple):
 
 
 def parse_args() -> argparse.Namespace:
+    """Argument parser function"""
     parser = argparse.ArgumentParser(
         description=__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter,
@@ -104,9 +107,9 @@ def parse_args() -> argparse.Namespace:
     return args
 
 
-# =============================================================
+# =============================================================================
 # Util
-# =============================================================
+# =============================================================================
 def open_gz(file: Path) -> TextIO:
     """Utility function: open file, even if it is gzipped"""
     if file.suffix == ".gz":
@@ -115,9 +118,9 @@ def open_gz(file: Path) -> TextIO:
         return open(file, "r")
 
 
-# =============================================================
+# =============================================================================
 # Core funcs.
-# =============================================================
+# =============================================================================
 def funca(
     infile: Path,
     outdir: Path,
@@ -136,7 +139,7 @@ def funca(
     print("Hello world")
 
 
-# =============================================================
+# =============================================================================
 def main() -> None:
     """Workflow:
     ---
@@ -154,7 +157,7 @@ def main() -> None:
 
     ############### no parallel processing ##################
 
-    if args.parallel:
+    if args.no_parallel:
         for infile in infiles:
             funca(infile=infile, outdir=args.outdir, args=args)
         return
@@ -172,7 +175,7 @@ def main() -> None:
         list(exe.map(partial_funca, infiles))
 
 
-# =============================================================
+# =============================================================================
 if __name__ == "__main__":
     sys.exit(main())
 EOF
