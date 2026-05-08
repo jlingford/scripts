@@ -48,15 +48,25 @@ import sys
 
 
 # =============================================================================
+# logger
+logging.basicConfig(
+    level=logging.INFO,
+    format="[%(asctime)s] %(levelname)s -- %(message)s",
+    datefmt="%H:%M:%S",
+)
+logger = logging.getLogger(__name__)
+
+
+# =============================================================================
 # CLI args
 # =============================================================================
 @dataclass
-class Args(NamedTuple):
+class Args:
     infile: Path
     outdir: Path
 
 
-def parse_args() -> Args:
+def collect_args() -> Args:
     """Argument parsing"""
     parser = argparse.ArgumentParser(
         description=__doc__,
@@ -114,7 +124,7 @@ def main() -> None:
      │
     """
     # get args
-    args = parse_args()
+    args = collect_args()
 
     # func
     funca(args)

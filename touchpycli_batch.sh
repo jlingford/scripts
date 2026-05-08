@@ -32,13 +32,14 @@ Prerequisites:
 # TODO:
 # - [ ]
 
-from concurrent.futures import ProcessPoolExecutor
-from functools import partial
 from Bio import SeqIO
+from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
+from dataclasses import dataclass
+from datetime import timedelta
+from functools import partial
 from itertools import combinations
 from pathlib import Path
 from typing import TextIO, NamedTuple
-from dataclasses import dataclass
 import argparse
 import gzip
 import logging
@@ -47,6 +48,20 @@ import polars as pl
 import shutil
 import subprocess
 import sys
+import time
+
+
+# =============================================================================
+# Global config
+# =============================================================================
+
+# logger
+logging.basicConfig(
+    level=logging.INFO,
+    format="[%(asctime)s] %(levelname)s -- %(message)s",
+    datefmt="%H:%M:%S",
+)
+logger = logging.getLogger(__name__)
 
 
 # =============================================================================
@@ -57,26 +72,27 @@ class Args:
     indir: Path
     outdir: Path
     cpu: int
-    no_parallel: bool
+    parallel: bool
 
 
-def parse_args() -> argparse.Namespace:
+def collect_args() -> Args:
     """Argument parser function"""
     parser = argparse.ArgumentParser(
         description=__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
-
-    parser.add_argument(
+    # ===================================================
+    mainopts = parser.add_argument_group("Main options")
+    mainopts.add_argument(
         "-i",
         "--indir",
+        dest="indir",
         type=Path,
-        metavar="FILE",
+        metavar="DIR",
         required=True,
-        help="Path to input dir [Required]",
+        help="Path to input directory base [Required]",
     )
-
-    parser.add_argument(
+    mainopts.add_argument(
         "-o",
         "--outdir",
         type=Path,
@@ -85,22 +101,25 @@ def parse_args() -> argparse.Namespace:
         metavar="DIR",
         help="Output target directory [Optional][Default: cwd]",
     )
-
-    parser.add_argument(
-        "-c",
+    # ===================================================
+    cpuopts = parser.add_argument_group("Parallel processing options")
+    cpuopts.add_argument(
+        "-C",
         "--cpu",
         type=int,
         default=None,
-        metavar="N",
+        metavar="CPU",
         required=False,
-        help="No. of CPUs to use for parallelism [Default: max available]",
+        help="Number of CPUs to use for parallelism [Default: max available]",
     )
 
-    parser.add_argument(
-        "--no_parallel",
+    cpuopts.add_argument(
+        "-P",
+        "--parallel",
         action="store_true",
-        help="Run script synchronously, not in parallel",
+        help="Run script in parallel [Default: runs without parallel processing]",
     )
+    # ===================================================
 
     args = Args(**vars(parser.parse_args()))
 
@@ -118,16 +137,33 @@ def open_gz(file: Path) -> TextIO:
         return open(file, "r")
 
 
+# ==============================================================================
+def collect_dirs(
+    base_dir: Path,
+) -> list[Path]:
+    """Glob for dirs
+    ---
+    Args:
+        base_dir (Path): the base directory to search
+
+    Returns:
+        dirs (list[Path]): a list of all dirs
+    """
+    # glob for all child directories in target dir
+    dirs = sorted([p for p in Path(base_dir).rglob("*") if p.is_dir()])
+    logger.info(f"Found {len(dirs)} child directories {base_dir}")
+
+    return dirs
+
+
 # =============================================================================
 # Core funcs.
 # =============================================================================
 def funca(
     infile: Path,
-    outdir: Path,
     args: Args,
     ) -> None:
     """Description
-
     ---
     Args:
         arg1 (dtype): description
@@ -144,35 +180,40 @@ def main() -> None:
     """Workflow:
     ---
     main
+     │
      ├── args
      └── func
-     │
     """
-    # get cli args
-    args = parse_args()
+    t0 = time.perf_counter()
 
-    # get all input files
-    file_searcher = Path(args.indir).glob("*.faa")
-    infiles = sorted([f for f in file_searcher if f.is_file()])
+    args = collect_args()
+
+    dirs = collect_dirs(base_dir=args.indir)
 
     ############### no parallel processing ##################
 
-    if args.no_parallel:
+    if not args.parallel:
         for infile in infiles:
             funca(infile=infile, outdir=args.outdir, args=args)
         return
 
     ################# PARALLEL PROCESSING ###################
 
-    # make partial func
-    partial_funca = partial(
-        funca,
-        outdir=args.outdir,
-        args=args,
-    )
-    # ProcessPoolExecutor
-    with ProcessPoolExecutor(max_workers=args.cpu) as exe:
-        list(exe.map(partial_funca, infiles))
+    if args.parallel:
+        # make partial func
+        partial_funca = partial(
+            funca,
+            args=args,
+        )
+        # ProcessPoolExecutor
+        with ProcessPoolExecutor(max_workers=args.cpu) as exe:
+            list(exe.map(partial_funca, infiles))
+
+    ################################################################
+
+    t1 = time.perf_counter()
+    readable_time = str(timedelta(seconds=int(t1 - t0)))
+    logger.info(f"FINISHED in {readable_time} h:m:s")
 
 
 # =============================================================================
